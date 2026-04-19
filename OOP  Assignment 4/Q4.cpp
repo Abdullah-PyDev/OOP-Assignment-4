@@ -1,7 +1,8 @@
 #include<iostream>
 #include<cstring>
 using namespace std;
-//user profile class
+
+
 class UserProfile {
 private:
     char* username;
@@ -11,25 +12,20 @@ private:
 public:
     UserProfile() : username(nullptr), email(nullptr), userId(0) {}
 
-    UserProfile(const char* uname, const char* email, int uId) {
+    UserProfile(const char* uname, const char* mail, int uId) {
         username = new char[strlen(uname) + 1];
         strcpy_s(username, strlen(uname) + 1, uname);
 
-        this->email = new char[strlen(email) + 1];
-        strcpy_s(this->email, strlen(email) + 1, email);
+        email = new char[strlen(mail) + 1];
+        strcpy_s(email, strlen(mail) + 1, mail);
 
         userId = uId;
     }
-	const char* getUsername() const { 
-        return username; 
-    }
-	const char* getEmail() const { 
-        return email; 
-    }
-  
-    int getUserId() const { 
-        return userId; 
-	}
+
+    const char* getUsername() const { return username; }
+    const char* getEmail() const { return email; }
+    int getUserId() const { return userId; }
+
     void displayProfile() const {
         cout << "Username : " << (username ? username : "NULL") << endl;
         cout << "Email : " << (email ? email : "NULL") << endl;
@@ -58,8 +54,6 @@ public:
         strcpy_s(hashedPin, strlen(hPin) + 1, hPin);
     }
 
-    
-
     bool authenticate(const char* pin) {
         if (isLocked) {
             cout << "Account is locked!\n";
@@ -70,16 +64,16 @@ public:
             failedAttempts = 0;
             return true;
         }
-        else {
-            failedAttempts++;
-            cout << "Incorrect PIN\n";
 
-            if (failedAttempts >= 3) {
-                isLocked = true;
-                cout << "Account locked after 3 failed attempts!\n";
-            }
-            return false;
+        failedAttempts++;
+        cout << "Incorrect PIN\n";
+
+        if (failedAttempts >= 3) {
+            isLocked = true;
+            cout << "Account locked after 3 failed attempts!\n";
         }
+
+        return false;
     }
 
     void resetLock() {
@@ -93,8 +87,9 @@ public:
     }
 };
 
+
 class PlatformAccount : public UserProfile, public SecurityModule {
-private:
+protected:
     char* accountType;
     double balance;
     int transactionLimit;
@@ -103,7 +98,8 @@ public:
     PlatformAccount(const char* uname, const char* email, int uId,
         const char* hPin, const char* accType,
         double bal, int transLimit)
-        : UserProfile(uname, email, uId), SecurityModule(hPin) {
+        : UserProfile(uname, email, uId),
+        SecurityModule(hPin) {
 
         accountType = new char[strlen(accType) + 1];
         strcpy_s(accountType, strlen(accType) + 1, accType);
@@ -111,8 +107,6 @@ public:
         balance = bal;
         transactionLimit = transLimit;
     }
-
-    
 
     bool deposit(double amount) {
         if (amount > transactionLimit) {
@@ -149,6 +143,7 @@ public:
     }
 };
 
+
 class PremiumAccount : public PlatformAccount {
 private:
     char* vipCode;
@@ -158,23 +153,23 @@ public:
     PremiumAccount(const char* uname, const char* email, int uId,
         const char* hPin, const char* accType,
         double bal, int transLimit,
-        const char* vipCode, double cashbackRate)
+        const char* vip, double cashback)
         : PlatformAccount(uname, email, uId, hPin, accType, bal, transLimit) {
 
-        this->vipCode = new char[strlen(vipCode) + 1];
-        strcpy_s(this->vipCode, strlen(vipCode) + 1, vipCode);
-        this->cashbackRate = cashbackRate;
+        vipCode = new char[strlen(vip) + 1];
+        strcpy_s(vipCode, strlen(vip) + 1, vip);
+
+        cashbackRate = cashback;
     }
 
-    
     void displayPremiumDetails() const {
         displayAccountDetails();
         cout << "VIP Code : " << (vipCode ? vipCode : "NULL") << endl;
         cout << "Cashback Rate : " << cashbackRate << "%\n";
     }
 
-    double calculateCashback(double spentAmount) const {
-        return spentAmount * (cashbackRate / 100);
+    double calculateCashback(double spent) const {
+        return spent * (cashbackRate / 100);
     }
 
     ~PremiumAccount() {
@@ -183,6 +178,7 @@ public:
     }
 };
 
+
 class DashboardConfig {
 private:
     char* theme;
@@ -190,17 +186,18 @@ private:
     int refreshIntervalSeconds;
 
 public:
-    DashboardConfig(const char* theme, bool notificationsEnabled, int refreshInterval) {
-        this->theme = new char[strlen(theme) + 1];
-        strcpy_s(this->theme, strlen(theme) + 1, theme);
-        this->notificationsEnabled = notificationsEnabled;
-        this->refreshIntervalSeconds = refreshInterval;
+    DashboardConfig(const char* t, bool n, int r) {
+        theme = new char[strlen(t) + 1];
+        strcpy_s(theme, strlen(t) + 1, t);
+
+        notificationsEnabled = n;
+        refreshIntervalSeconds = r;
     }
 
     void displayConfig() const {
         cout << "Dashboard Theme : " << theme << endl;
-        cout << "Notifications Enabled : " << (notificationsEnabled ? "Yes" : "No") << endl;
-        cout << "Refresh Interval : " << refreshIntervalSeconds << " seconds\n";
+        cout << "Notifications : " << (notificationsEnabled ? "Yes" : "No") << endl;
+        cout << "Refresh : " << refreshIntervalSeconds << " sec\n";
     }
 
     ~DashboardConfig() {
@@ -209,26 +206,28 @@ public:
     }
 };
 
+
 class PaymentDashboard {
 private:
     char* dashboardName;
     PlatformAccount** accounts;
-    DashboardConfig* config;
     int accountCount;
     int capacity;
+    DashboardConfig* config; // NOT owned anymore
 
 public:
-    PaymentDashboard(const char* name, DashboardConfig* config) {
+    PaymentDashboard(const char* name, DashboardConfig* cfg) {
         dashboardName = new char[strlen(name) + 1];
         strcpy_s(dashboardName, strlen(name) + 1, name);
 
-        this->config = config;
+        config = cfg;
+
         capacity = 5;
         accountCount = 0;
         accounts = new PlatformAccount * [capacity];
     }
 
-    void addAccount(PlatformAccount* account) {
+    void addAccount(PlatformAccount* acc) {
         if (accountCount == capacity) {
             capacity *= 2;
             PlatformAccount** temp = new PlatformAccount * [capacity];
@@ -240,44 +239,39 @@ public:
             accounts = temp;
         }
 
-        accounts[accountCount] = account;
-        accountCount++;
+        accounts[accountCount++] = acc;
     }
 
     void displayDashboard() const {
-        cout << "Payment Dashboard : " << dashboardName << endl;
+        cout << "Payment Dashboard: " << dashboardName << endl;
         config->displayConfig();
 
-        cout << "\n========= Accounts =========\n";
+        cout << "\n--- Accounts ---\n";
         for (int i = 0; i < accountCount; i++) {
-            cout << "----------------------------\n";
+            cout << "-----------------\n";
             accounts[i]->displayAccountDetails();
         }
     }
 
+    // IMPORTANT: does NOT delete accounts or config
     ~PaymentDashboard() {
-        cout << "Payment Dashboard [" << dashboardName << "] deleted\n";
+        cout << "Dashboard [" << dashboardName << "] deleted\n";
         delete[] dashboardName;
-        delete config;      // owns config
-        delete[] accounts;  // does NOT own accounts
+        delete[] accounts;
     }
 };
+
 
 int main() {
     PlatformAccount* accounts[5] = { nullptr };
 
     DashboardConfig* config = new DashboardConfig("Dark Mode", true, 30);
-    PaymentDashboard* dashboard = new PaymentDashboard("My Payment Dashboard", config);
+    PaymentDashboard* dashboard = new PaymentDashboard("My Dashboard", config);
 
     while (true) {
-        cout << "\n===== MAIN MENU =====\n";
-        cout << "1. Display Dashboard\n";
-        cout << "2. Create Dashboard\n";
-        cout << "3. Authenticate Account\n";
-        cout << "4. Add Account\n";
-        cout << "5. Delete Account\n";
-        cout << "6. Exit\n";
-        cout << "Enter choice: ";
+        cout << "\n===== MENU =====\n";
+        cout << "1. Display Dashboard\n2. Add Account\n3. Authenticate\n4. Delete Account\n5. Exit\n";
+        cout << "Choice: ";
 
         int choice;
         cin >> choice;
@@ -287,137 +281,101 @@ int main() {
         }
 
         else if (choice == 2) {
-            char name[100], theme[50];
+            int slot = -1;
+            for (int i = 0; i < 5; i++)
+                if (!accounts[i]) { slot = i; break; }
 
-            cout << "Set Dashboard Name: ";
-            cin >> name;
+            if (slot == -1) {
+                cout << "Full!\n";
+                continue;
+            }
 
-            cout << "Set Dashboard Theme: ";
-            cin >> theme;
+            char type;
+            cout << "Premium? (y/n): ";
+            cin >> type;
 
-            delete config;
-            config = new DashboardConfig(theme, true, 30);
+            char u[50], e[50], p[20], acc[20], vip[20];
+            int id, lim;
+            double bal, cash;
 
-            delete dashboard;
-            dashboard = new PaymentDashboard(name, config);
+            cout << "Username: "; 
+            cin >> u;
+            cout << "Email: "; 
+            cin >> e;
+            cout << "ID: "; 
+            cin >> id;
+            cout << "PIN: "; 
+            cin >> p;
+            cout << "Type: "; 
+            cin >> acc;
+            cout << "Balance: "; 
+            cin >> bal;
+            cout << "Limit: "; 
+            cin >> lim;
 
-            cout << "Dashboard created successfully!\n";
+            if (type == 'y') {
+                cout << "VIP: "; 
+                cin >> vip;
+                cout << "Cashback: "; 
+                cin >> cash;
+
+                accounts[slot] = new PremiumAccount(u, e, id, p, acc, bal, lim, vip, cash);
+            }
+            else {
+                accounts[slot] = new PlatformAccount(u, e, id, p, acc, bal, lim);
+            }
+
+            dashboard->addAccount(accounts[slot]);
+            cout << "Added!\n";
         }
 
         else if (choice == 3) {
-            int userId;
-            cout << "Enter User ID: ";
-            cin >> userId;
+            int id;
+            cout << "User ID: ";
+            cin >> id;
 
-            int index = -1;
+            int idx = -1;
+            for (int i = 0; i < 5; i++)
+                if (accounts[i] && accounts[i]->getUserId() == id)
+                    idx = i;
 
-            for (int i = 0; i < 5; i++) {
-                if (accounts[i] != nullptr && accounts[i]->getUserId() == userId) {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index == -1) {
-                cout << "Account not found!\n";
+            if (idx == -1) {
+                cout << "Not found\n";
                 continue;
             }
 
             char pin[20];
-            cout << "Enter PIN: ";
+            cout << "PIN: ";
             cin >> pin;
 
-            if (accounts[index]->authenticate(pin)) {
-                cout << "Login successful!\n";
-
-                while (true) {
-                    cout << "\n--- ACCOUNT MENU ---\n";
-                    cout << "1. Display\n2. Deposit\n3. Withdraw\n4. Logout\n";
-                    int ch;
-                    cin >> ch;
-
-                    if (ch == 1)
-                        accounts[index]->displayAccountDetails();
-
-                    else if (ch == 2) {
-                        double amt;
-                        cin >> amt;
-                        accounts[index]->deposit(amt);
-                    }
-
-                    else if (ch == 3) {
-                        double amt;
-                        cin >> amt;
-                        accounts[index]->withdraw(amt);
-                    }
-
-                    else break;
-                }
+            if (accounts[idx]->authenticate(pin)) {
+                cout << "Login success!\n";
             }
         }
 
         else if (choice == 4) {
-            int slot = -1;
-
-            for (int i = 0; i < 5; i++) {
-                if (accounts[i] == nullptr) {
-                    slot = i;
-                    break;
-                }
-            }
-
-            if (slot == -1) {
-                cout << "Account storage full!\n";
-                continue;
-            }
-
-            char uname[50], email[50], pin[20], type[20];
-            int id, limit;
-            double bal;
-
-            cout << "Enter Username: "; cin >> uname;
-            cout << "Enter Email: "; cin >> email;
-            cout << "Enter ID: "; cin >> id;
-            cout << "Enter PIN: "; cin >> pin;
-            cout << "Enter Type: "; cin >> type;
-            cout << "Enter Balance: "; cin >> bal;
-            cout << "Enter Limit: "; cin >> limit;
-
-            PlatformAccount* acc =
-                new PlatformAccount(uname, email, id, pin, type, bal, limit);
-
-            accounts[slot] = acc;
-            dashboard->addAccount(acc);
-
-            cout << "Account added!\n";
-        }
-
-        else if (choice == 5) {
             int id;
-            cout << "Enter ID to delete: ";
+            cout << "Delete ID: ";
             cin >> id;
 
             for (int i = 0; i < 5; i++) {
-                if (accounts[i] != nullptr && accounts[i]->getUserId() == id) {
+                if (accounts[i] && accounts[i]->getUserId() == id) {
                     delete accounts[i];
                     accounts[i] = nullptr;
-                    cout << "Deleted!\n";
+                    cout << "Deleted\n";
                 }
             }
         }
 
-        else if (choice == 6) {
-            break;
-        }
+        else if (choice == 5) break;
     }
 
-    // cleanup
     delete dashboard;
 
-    for (int i = 0; i < 5; i++) {
-        if (accounts[i] != nullptr)
-            delete accounts[i];
-    }
+    for (int i = 0; i < 5; i++)
+        delete accounts[i];
+
+    delete config;
 
     return 0;
 }
