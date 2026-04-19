@@ -1,7 +1,7 @@
 #include<iostream>
 #include<cstring>
 using namespace std;
-
+//user profile class
 class UserProfile {
 private:
     char* username;
@@ -20,11 +20,16 @@ public:
 
         userId = uId;
     }
-
-    // Disable copy
-    UserProfile(const UserProfile&) = delete;
-    UserProfile& operator=(const UserProfile&) = delete;
-
+	const char* getUsername() const { 
+        return username; 
+    }
+	const char* getEmail() const { 
+        return email; 
+    }
+  
+    int getUserId() const { 
+        return userId; 
+	}
     void displayProfile() const {
         cout << "Username : " << (username ? username : "NULL") << endl;
         cout << "Email : " << (email ? email : "NULL") << endl;
@@ -53,9 +58,7 @@ public:
         strcpy_s(hashedPin, strlen(hPin) + 1, hPin);
     }
 
-    // Disable copy
-    SecurityModule(const SecurityModule&) = delete;
-    SecurityModule& operator=(const SecurityModule&) = delete;
+    
 
     bool authenticate(const char* pin) {
         if (isLocked) {
@@ -109,9 +112,7 @@ public:
         transactionLimit = transLimit;
     }
 
-    // Disable copy
-    PlatformAccount(const PlatformAccount&) = delete;
-    PlatformAccount& operator=(const PlatformAccount&) = delete;
+    
 
     bool deposit(double amount) {
         if (amount > transactionLimit) {
@@ -165,10 +166,7 @@ public:
         this->cashbackRate = cashbackRate;
     }
 
-    // Disable copy
-    PremiumAccount(const PremiumAccount&) = delete;
-    PremiumAccount& operator=(const PremiumAccount&) = delete;
-
+    
     void displayPremiumDetails() const {
         displayAccountDetails();
         cout << "VIP Code : " << (vipCode ? vipCode : "NULL") << endl;
@@ -266,55 +264,160 @@ public:
 };
 
 int main() {
+    PlatformAccount* accounts[5] = { nullptr };
+
     DashboardConfig* config = new DashboardConfig("Dark Mode", true, 30);
-
-    PlatformAccount* acc1 = new PlatformAccount("Ali Khan", "ali@example.com", 1, "1234", "Standard", 1000.0, 500);
-    PlatformAccount* acc2 = new PlatformAccount("Sara Ahmed", "sara@example.com", 2, "5678", "Premium", 2000.0, 1000);
-    PremiumAccount* premAcc = new PremiumAccount("Ahmed Ali", "ahmed@example.com", 3, "9101", "Premium", 3000.0, 1500, "VIP123", 5.0);
-
-    char pin[20];
-    cout << "Enter PIN for Ali Khan: ";
-    cin >> pin;
-
-    bool authResult = acc1->authenticate(pin);
-
-    while (!authResult) {
-        cout << "Enter PIN again: ";
-        cin >> pin;
-        authResult = acc1->authenticate(pin);
-    }
-
     PaymentDashboard* dashboard = new PaymentDashboard("My Payment Dashboard", config);
 
-    dashboard->addAccount(acc1);
-    dashboard->addAccount(acc2);
-    dashboard->addAccount(premAcc);
+    while (true) {
+        cout << "\n===== MAIN MENU =====\n";
+        cout << "1. Display Dashboard\n";
+        cout << "2. Create Dashboard\n";
+        cout << "3. Authenticate Account\n";
+        cout << "4. Add Account\n";
+        cout << "5. Delete Account\n";
+        cout << "6. Exit\n";
+        cout << "Enter choice: ";
 
-    if (acc1->deposit(299.99))
-        cout << "Deposit Successful\n";
-    else
-        cout << "Deposit Failed\n";
+        int choice;
+        cin >> choice;
 
-    if (acc1->withdraw(800))
-        cout << "Withdrawal Successful\n";
-    else
-        cout << "Withdrawal Failed\n";
+        if (choice == 1) {
+            dashboard->displayDashboard();
+        }
 
-    double cashback = premAcc->calculateCashback(500);
-    cout << "Cashback on $500 spent: $" << cashback << endl;
+        else if (choice == 2) {
+            char name[100], theme[50];
 
-    dashboard->displayDashboard();
+            cout << "Set Dashboard Name: ";
+            cin >> name;
 
+            cout << "Set Dashboard Theme: ";
+            cin >> theme;
+
+            delete config;
+            config = new DashboardConfig(theme, true, 30);
+
+            delete dashboard;
+            dashboard = new PaymentDashboard(name, config);
+
+            cout << "Dashboard created successfully!\n";
+        }
+
+        else if (choice == 3) {
+            int userId;
+            cout << "Enter User ID: ";
+            cin >> userId;
+
+            int index = -1;
+
+            for (int i = 0; i < 5; i++) {
+                if (accounts[i] != nullptr && accounts[i]->getUserId() == userId) {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == -1) {
+                cout << "Account not found!\n";
+                continue;
+            }
+
+            char pin[20];
+            cout << "Enter PIN: ";
+            cin >> pin;
+
+            if (accounts[index]->authenticate(pin)) {
+                cout << "Login successful!\n";
+
+                while (true) {
+                    cout << "\n--- ACCOUNT MENU ---\n";
+                    cout << "1. Display\n2. Deposit\n3. Withdraw\n4. Logout\n";
+                    int ch;
+                    cin >> ch;
+
+                    if (ch == 1)
+                        accounts[index]->displayAccountDetails();
+
+                    else if (ch == 2) {
+                        double amt;
+                        cin >> amt;
+                        accounts[index]->deposit(amt);
+                    }
+
+                    else if (ch == 3) {
+                        double amt;
+                        cin >> amt;
+                        accounts[index]->withdraw(amt);
+                    }
+
+                    else break;
+                }
+            }
+        }
+
+        else if (choice == 4) {
+            int slot = -1;
+
+            for (int i = 0; i < 5; i++) {
+                if (accounts[i] == nullptr) {
+                    slot = i;
+                    break;
+                }
+            }
+
+            if (slot == -1) {
+                cout << "Account storage full!\n";
+                continue;
+            }
+
+            char uname[50], email[50], pin[20], type[20];
+            int id, limit;
+            double bal;
+
+            cout << "Enter Username: "; cin >> uname;
+            cout << "Enter Email: "; cin >> email;
+            cout << "Enter ID: "; cin >> id;
+            cout << "Enter PIN: "; cin >> pin;
+            cout << "Enter Type: "; cin >> type;
+            cout << "Enter Balance: "; cin >> bal;
+            cout << "Enter Limit: "; cin >> limit;
+
+            PlatformAccount* acc =
+                new PlatformAccount(uname, email, id, pin, type, bal, limit);
+
+            accounts[slot] = acc;
+            dashboard->addAccount(acc);
+
+            cout << "Account added!\n";
+        }
+
+        else if (choice == 5) {
+            int id;
+            cout << "Enter ID to delete: ";
+            cin >> id;
+
+            for (int i = 0; i < 5; i++) {
+                if (accounts[i] != nullptr && accounts[i]->getUserId() == id) {
+                    delete accounts[i];
+                    accounts[i] = nullptr;
+                    cout << "Deleted!\n";
+                }
+            }
+        }
+
+        else if (choice == 6) {
+            break;
+        }
+    }
+
+    // cleanup
     delete dashboard;
 
-    // accounts still exist
-    acc1->displayAccountDetails();
-    acc2->displayAccountDetails();
-    premAcc->displayAccountDetails();
-
-    delete acc1;
-    delete acc2;
-    delete premAcc;
+    for (int i = 0; i < 5; i++) {
+        if (accounts[i] != nullptr)
+            delete accounts[i];
+    }
 
     return 0;
 }
