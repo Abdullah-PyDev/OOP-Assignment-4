@@ -376,6 +376,18 @@ int main() {
         delete accounts[i];
 
     delete config;
-
+    // why is it hybrid
+	// - DashboardConfig is used by PaymentDashboard but not owned by it (aggregation)
+	// - UserProfile and SecurityModule are inherited by PlatformAccount (multiple inheritance)
+	// - PremiumAccount inherits from PlatformAccount (single inheritance)
+	// - PaymentDashboard has a collection of PlatformAccount pointers (composition)
+	// In this design, we have a mix of inheritance (for shared behavior and properties) and composition/aggregation (for managing relationships between classes).
+	// Hence it is a hybrid design that combines multiple OOP concepts to create a flexible and modular system.
+	//Diamond problem is not there because we are not using virtual inheritance and we are not accessing the base class members through derived class pointers.
+    //HAS-A RELATIONSHIPS (Aggregation vs Composition)
+	// - PaymentDashboard HAS-A DashboardConfig (aggregation, because it does not own the config and does not manage its lifecycle)
+	// - PaymentDashboard HAS-A collection of PlatformAccount (composition, because it manages the lifecycle of the accounts and deletes them in its destructor)
+	// - PlatformAccount HAS-A SecurityModule (composition, because it manages the lifecycle of the SecurityModule and deletes it in its destructor)
+	
     return 0;
 }

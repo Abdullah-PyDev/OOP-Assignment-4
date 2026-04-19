@@ -121,7 +121,11 @@
 //	delete M2;
 //	delete M3;
 //	//Explanation for Aggregation
-//	
+//	// In this code, the PaymentGateway class has a collection of Merchant objects. 
+//	// The PaymentGateway does not own the Merchant objects; it simply holds pointers to them. 
+//	// This means that when the PaymentGateway is deleted, the Merchant objects still exist and can be accessed independently. 
+//	// This is an example of aggregation, where one class (PaymentGateway) has a relationship with another class (Merchant) but does not manage its lifecycle. 
+//	// The Merchants can exist without the PaymentGateway, and they can be shared among multiple PaymentGateways if needed.
 //
 //
 //}
